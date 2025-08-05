@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,16 +8,24 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  Modal,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import ImageViewing from "react-native-image-viewing";
 
-// Profile Screen Component
+const defaultProfileImage =
+  "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
 const ProfileScreen = ({ navigation }) => {
+  const [profileImage, setProfileImage] = useState(
+    "https://cdn.pixabay.com/photo/2019/12/04/09/30/man-4672229_1280.jpg"
+  );
+  const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+
   const user = {
     name: "Supun Yasantha",
-    profileImage:
-      "https://cdn.pixabay.com/photo/2019/12/04/09/30/man-4672229_1280.jpg",
   };
 
   const handleOptionPress = (label) => {
@@ -45,6 +53,38 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
+  const handlePickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission denied", "Please allow access to photos.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    Alert.alert(
+      "Remove Photo",
+      "Are you sure you want to remove your profile photo?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: () => setProfileImage(null),
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient colors={["#d8bfd8", "#c6a1cf"]} style={styles.header}>
@@ -53,11 +93,31 @@ const ProfileScreen = ({ navigation }) => {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.profileContainer}>
-          <Image
-            source={{ uri: user.profileImage }}
-            style={styles.profileImage}
-          />
+          <TouchableOpacity onPress={() => setIsImageViewerVisible(true)}>
+            <Image
+              source={{ uri: profileImage || defaultProfileImage }}
+              style={styles.profileImage}
+            />
+          </TouchableOpacity>
+
           <Text style={styles.profileName}>{user.name}</Text>
+
+          <View style={styles.imageButtons}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={handlePickImage}
+            >
+              <Ionicons name="camera-outline" size={20} color="#fff" />
+              <Text style={styles.editButtonText}>Change</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.editButton, { backgroundColor: "#ef4444" }]}
+              onPress={handleRemoveImage}
+            >
+              <Ionicons name="trash-outline" size={20} color="#fff" />
+              <Text style={styles.editButtonText}>Remove</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.optionsContainer}>
@@ -88,6 +148,13 @@ const ProfileScreen = ({ navigation }) => {
           />
         </View>
       </ScrollView>
+
+      <ImageViewing
+        images={[{ uri: profileImage || defaultProfileImage }]}
+        imageIndex={0}
+        visible={isImageViewerVisible}
+        onRequestClose={() => setIsImageViewerVisible(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -110,74 +177,7 @@ const OptionRow = ({ icon, label, onPress }) => (
   </TouchableOpacity>
 );
 
-// Placeholder Screen Components
-const WelcomeScreen = () => (
-  <SafeAreaView style={styles.screenContainer}>
-    <LinearGradient colors={["#d8bfd8", "#c6a1cf"]} style={styles.header}>
-      <Text style={styles.headerTitle}>Welcome</Text>
-    </LinearGradient>
-    <View style={styles.screenContent}>
-      <Text style={styles.screenText}>Welcome to the App!</Text>
-    </View>
-  </SafeAreaView>
-);
-
-const LanguageScreen = () => (
-  <SafeAreaView style={styles.screenContainer}>
-    <LinearGradient colors={["#d8bfd8", "#c6a1cf"]} style={styles.header}>
-      <Text style={styles.headerTitle}>Language</Text>
-    </LinearGradient>
-    <View style={styles.screenContent}>
-      <Text style={styles.screenText}>Select your preferred language.</Text>
-    </View>
-  </SafeAreaView>
-);
-
-const TermsScreen = () => (
-  <SafeAreaView style={styles.screenContainer}>
-    <LinearGradient colors={["#d8bfd8", "#c6a1cf"]} style={styles.header}>
-      <Text style={styles.headerTitle}>Terms of Use</Text>
-    </LinearGradient>
-    <View style={styles.screenContent}>
-      <Text style={styles.screenText}>Review our Terms of Use.</Text>
-    </View>
-  </SafeAreaView>
-);
-
-const PrivacyScreen = () => (
-  <SafeAreaView style={styles.screenContainer}>
-    <LinearGradient colors={["#d8bfd8", "#c6a1cf"]} style={styles.header}>
-      <Text style={styles.headerTitle}>Privacy Policy</Text>
-    </LinearGradient>
-    <View style={styles.screenContent}>
-      <Text style={styles.screenText}>Read our Privacy Policy.</Text>
-    </View>
-  </SafeAreaView>
-);
-
-const ChatSupportScreen = () => (
-  <SafeAreaView style={styles.screenContainer}>
-    <LinearGradient colors={["#d8bfd8", "#c6a1cf"]} style={styles.header}>
-      <Text style={styles.headerTitle}>Chat Support</Text>
-    </LinearGradient>
-    <View style={styles.screenContent}>
-      <Text style={styles.screenText}>Contact our support team.</Text>
-    </View>
-  </SafeAreaView>
-);
-
-const AboutUsScreen = () => (
-  <SafeAreaView style={styles.screenContainer}>
-    <LinearGradient colors={["#d8bfd8", "#c6a1cf"]} style={styles.header}>
-      <Text style={styles.headerTitle}>About Us</Text>
-    </LinearGradient>
-    <View style={styles.screenContent}>
-      <Text style={styles.screenText}>Learn more about our company.</Text>
-    </View>
-  </SafeAreaView>
-);
-
-// Styles
+// Styles (same as before, but with touchable avatar)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -225,6 +225,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1f2937",
   },
+  imageButtons: {
+    flexDirection: "row",
+    marginTop: 12,
+    gap: 10,
+  },
+  editButton: {
+    flexDirection: "row",
+    backgroundColor: "#7c3aed",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    gap: 6,
+  },
+  editButtonText: {
+    color: "#fff",
+    fontWeight: "500",
+  },
   optionsContainer: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -247,21 +265,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#374151",
     marginLeft: 12,
-  },
-  screenContainer: {
-    flex: 1,
-    backgroundColor: "#f3f4f6",
-  },
-  screenContent: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  screenText: {
-    fontSize: 18,
-    color: "#1f2937",
-    textAlign: "center",
   },
 });
 
