@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 16,
-    paddingTop: 40,
+    paddingTop: 60,
   },
   headerLeft: {
     flexDirection: "row",
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   headerTitle: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: "700",
     color: "#fff",
     fontFamily: "Helvetica",

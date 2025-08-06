@@ -158,6 +158,77 @@ export const ProductProvider = ({ children }) => {
     },
   ]);
 
+  const [cartItems, setCartItems] = useState([]);
+
+  const addToCart = (product) => {
+    setCartItems((prevItems) => {
+      const exists = prevItems.find(
+        (item) =>
+          item.id === product.id &&
+          item.size === product.size &&
+          item.color === product.color
+      );
+
+      if (exists) {
+        return prevItems.map((item) =>
+          item.id === newItem.id &&
+          item.size === newItem.size &&
+          item.color === newItem.color
+            ? { ...item, quantity: item.quantity + newItem.quantity }
+            : item
+        );
+      }
+
+      if (prevItems.length >= 10) {
+        alert("You can only add up to 10 different items in your cart");
+        return prevItems;
+      }
+      return [...prevItems, newItem];
+    });
+  };
+
+  // add muiltiple items to cart
+  const addMultipleToCart = (productsToAdd) => {
+    setCartItems((prevItems) => {
+      let updatedItems = [...prevItems];
+
+      for (let product of productsToAdd) {
+        const exists = updatedItems.find(
+          (item) =>
+            item.id === product.id &&
+            item.size === product.size &&
+            item.color === product.color
+        );
+
+        if (exists) {
+          updatedItems = updatedItems.map((item) =>
+            item.id === product.id &&
+            item.size === product.size &&
+            item.color === product.color
+              ? { ...item, quantity: item.quantity + product.quantity }
+              : item
+          );
+        } else {
+          if (updatedItems.length >= 10) {
+            alert("Cart limit excceeded.Only 10 unique products allowed.");
+            break;
+          }
+          updatedItems.push(product);
+        }
+      }
+      return updatedItems;
+    });
+  };
+
+  const removeFromCart = (id, size, color) => {
+    setCartItems((prevItems) =>
+      prevItems.filter(
+        (item) =>
+          !(item.id === id && item.size === size && item.color === color)
+      )
+    );
+  };
+
   const [orders, setOrders] = useState([]);
 
   const placeOrder = (product) => {
@@ -201,6 +272,12 @@ export const ProductProvider = ({ children }) => {
         deleteShopNowProduct,
         PlaceOrder,
         setShopNowProducts,
+        cartItems,
+        setCartItems,
+        addToCart,
+        removeFromCart,
+        addMultipleToCart,
+        removeFromCart,
       }}
     >
       {children}

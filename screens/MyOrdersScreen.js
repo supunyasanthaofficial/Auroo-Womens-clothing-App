@@ -126,8 +126,8 @@ export default MyOrdersScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f3f4f6" },
   header: {
-    paddingTop: 50,
-    paddingBottom: 16,
+    paddingTop: 60,
+    paddingBottom: 18,
     paddingHorizontal: 16,
     alignItems: "center",
     justifyContent: "center",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
   View,
   Text,
@@ -47,9 +47,7 @@ const SearchScreen = () => {
           );
         }
         if (!p.category) {
-          console.warn(
-            `Product ${i} (${p.name || "unknown"}) missing category`
-          );
+          console.warn(`Product ${i} (${p.name || "unknown"}) has no category`);
         }
       });
     } else {
@@ -61,7 +59,6 @@ const SearchScreen = () => {
     { label: "Price: Low to High", value: "lowToHigh" },
     { label: "Price: High to Low", value: "highToLow" },
   ];
-
   const categoryOptions = [
     { label: "All", value: "all" },
     { label: "Dresses", value: "Dresses" },
@@ -72,7 +69,7 @@ const SearchScreen = () => {
   const filteredProducts = [...(products || [])]
     .filter((product) => {
       if (!product || !product.name) {
-        console.warn("Invalid product entry:", product);
+        console.warn("Product missing or invalid:", product);
         return false;
       }
       const matchesSearch = product.name
@@ -87,14 +84,14 @@ const SearchScreen = () => {
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
-      const priceA = a.price || 0;
-      const priceB = b.price || 0;
+      const priceA = a.price || 0,
+        priceB = b.price || 0;
       return sortType === "lowToHigh" ? priceA - priceB : priceB - priceA;
     });
 
   useEffect(() => {
     console.log(
-      "Filtered:",
+      "Filtered products:",
       filteredProducts.map((p) => ({
         name: p.name,
         price: p.price,
@@ -105,7 +102,7 @@ const SearchScreen = () => {
   }, [filteredProducts, searchText, categoryType, sortType]);
 
   const openModal = (product) => {
-    if (!product.colors?.length || !product.size?.length) {
+    if (!product || !product.colors?.length || !product.size?.length) {
       Alert.alert("Error", "Invalid product data");
       return;
     }
@@ -137,8 +134,8 @@ const SearchScreen = () => {
     setModalVisible(false);
   };
 
-  const handleImagePress = (uri) => {
-    setSelectedImage(uri || "https://via.placeholder.com/200");
+  const handleImagePress = (imageUri) => {
+    setSelectedImage(imageUri || "https://via.placeholder.com/200");
     setImageViewerVisible(true);
   };
 
@@ -173,9 +170,9 @@ const SearchScreen = () => {
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Search + Sort Row */}
+      {/* Search bar */}
       <View style={styles.searchBarContainer}>
-        <View style={styles.searchInputWrapper}>
+        <View style={styles.searchInputContainer}>
           <Ionicons
             name="search"
             size={20}
@@ -190,16 +187,23 @@ const SearchScreen = () => {
             placeholderTextColor="#999"
           />
         </View>
+      </View>
+
+      {/* Sort button below search */}
+      <View style={styles.sortContainer}>
         <TouchableOpacity
           style={styles.sortButton}
           onPress={() => setSortModalVisible(true)}
           activeOpacity={0.7}
         >
-          <Ionicons name="swap-vertical" size={20} color="#8e44ad" />
+          <Ionicons name="filter" size={20} color="#8e44ad" />
+          <Text style={styles.sortButtonText}>
+            {sortOptions.find((opt) => opt.value === sortType)?.label || "Sort"}
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Product Listing */}
+      {/* Product listing */}
       {!products || products.length === 0 ? (
         <Text style={styles.noProductsText}>No products available</Text>
       ) : filteredProducts.length === 0 ? (
@@ -265,7 +269,171 @@ const SearchScreen = () => {
         </View>
       </Modal>
 
-      {/* Category & Product & Image Viewer Modals remain unchanged */}
+      {/* Category Modal */}
+      <Modal
+        visible={categoryModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCategoryModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Category</Text>
+            {categoryOptions.map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  styles.sortOption,
+                  categoryType === option.value && styles.selectedSortOption,
+                ]}
+                onPress={() => {
+                  setCategoryType(option.value);
+                  setCategoryModalVisible(false);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.sortOptionText,
+                    categoryType === option.value &&
+                      styles.selectedSortOptionText,
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setCategoryModalVisible(false)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Product Modal */}
+      <Modal visible={modalVisible} animationType="slide" transparent>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView>
+              <TouchableOpacity
+                onPress={() =>
+                  handleImagePress(
+                    selectedProduct?.imagesByColor?.[selectedColor] ||
+                      selectedProduct?.thumbnail ||
+                      selectedProduct?.image ||
+                      "https://via.placeholder.com/200"
+                  )
+                }
+              >
+                <Image
+                  source={{
+                    uri:
+                      selectedProduct?.imagesByColor?.[selectedColor] ||
+                      selectedProduct?.thumbnail ||
+                      selectedProduct?.image ||
+                      "https://via.placeholder.com/200",
+                  }}
+                  style={styles.modalImage}
+                />
+              </TouchableOpacity>
+
+              <Text style={styles.modalName}>
+                {selectedProduct?.name || "Unknown Product"}
+              </Text>
+              <Text style={styles.modalPrice}>
+                Rs {(selectedProduct?.price || 0).toFixed(2)}
+              </Text>
+
+              <Text style={styles.modalLabel}>Select Size:</Text>
+              <View style={styles.optionsRow}>
+                {selectedProduct?.size?.map((size) => (
+                  <TouchableOpacity
+                    key={size}
+                    style={[
+                      styles.optionBox,
+                      selectedSize === size && styles.selectedOption,
+                    ]}
+                    onPress={() => setSelectedSize(size)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.optionText}>{size}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.modalLabel}>Select Color:</Text>
+              <View style={styles.optionsRow}>
+                {selectedProduct?.colors?.map((color) => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[
+                      styles.colorCircle,
+                      {
+                        backgroundColor: color,
+                        borderWidth: selectedColor === color ? 2 : 1,
+                        borderColor:
+                          selectedColor === color ? "#8e44ad" : "#ccc",
+                      },
+                    ]}
+                    onPress={() => setSelectedColor(color)}
+                    activeOpacity={0.7}
+                  />
+                ))}
+              </View>
+
+              <Text style={styles.modalLabel}>Reviews:</Text>
+              {selectedProduct?.reviews?.length ? (
+                selectedProduct.reviews.map((review, idx) => (
+                  <Text key={idx} style={styles.reviewText}>
+                    • {review}
+                  </Text>
+                ))
+              ) : (
+                <Text style={styles.reviewText}>No reviews available</Text>
+              )}
+
+              <TouchableOpacity
+                style={styles.addToCartModal}
+                onPress={navigateToCart}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="cart" size={20} color="#fff" />
+                <Text style={styles.addToCartText}>Add to Cart</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setModalVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Image Viewer Modal */}
+      <Modal visible={imageViewerVisible} transparent>
+        <View style={styles.imageViewerContainer}>
+          <TouchableOpacity
+            style={styles.closeImageViewer}
+            onPress={() => setImageViewerVisible(false)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="close" size={30} color="#fff" />
+          </TouchableOpacity>
+          <Image
+            source={{ uri: selectedImage || "https://via.placeholder.com/200" }}
+            style={styles.fullScreenImage}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -275,15 +443,15 @@ export default SearchScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f6ff" },
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingTop: 40,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    paddingTop: 60,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "700",
     color: "#fff",
     fontFamily: "Helvetica",
@@ -293,8 +461,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginHorizontal: 16,
     marginVertical: 12,
+    justifyContent: "space-between",
   },
-  searchInputWrapper: {
+  searchInputContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
@@ -303,6 +472,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     elevation: 2,
+    marginRight: 12,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -314,17 +484,57 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     color: "#333",
   },
+  sortContainer: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    alignItems: "flex-start",
+  },
   sortButton: {
-    marginLeft: 10,
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#e5e7eb",
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    zIndex: 1,
+  },
+  sortButtonText: {
+    fontSize: 14,
+    color: "#8e44ad",
+    marginLeft: 6,
+    fontFamily: "Helvetica",
+  },
+  filterContainer: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    alignItems: "flex-start",
+  },
+  categoryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    zIndex: 1,
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    color: "#8e44ad",
+    marginLeft: 6,
+    fontFamily: "Helvetica",
   },
   noProductsText: {
     fontSize: 16,
@@ -404,7 +614,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontFamily: "Helvetica",
   },
-  // (Other modal, review, image viewer styles unchanged as before)
   modalImage: { width: "100%", height: 250, borderRadius: 12 },
   modalName: {
     fontSize: 20,

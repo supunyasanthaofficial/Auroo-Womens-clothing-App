@@ -177,21 +177,20 @@ const OptionRow = ({ icon, label, onPress }) => (
   </TouchableOpacity>
 );
 
-// Styles (same as before, but with touchable avatar)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f3f4f6",
   },
   header: {
-    paddingTop: 50,
+    paddingTop: 60,
     paddingBottom: 18,
     paddingHorizontal: 16,
     alignItems: "center",
     backgroundColor: "transparent",
   },
   headerTitle: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#fff",
   },
