@@ -51,8 +51,37 @@ const HomeScreen = () => {
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [categoryType, setCategoryType] = useState("all");
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+
   const navigation = useNavigation();
-  const { products } = useProducts();
+  const { products, addToCart, cartItems, ShopNowProducts } =
+    useProducts() || {};
+
+  // Fallback if context is undefined
+  if (!products || !addToCart || !cartItems) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.errorText}>
+          Error: Product context is not available. Ensure HomeScreen is wrapped
+          in ProductProvider.
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Infer categories based on product names (since no category field exists)
+  const inferCategory = (productName) => {
+    if (!productName) return "Uncategorized";
+    const name = productName.toLowerCase();
+    if (name.includes("dress") || name.includes("jumpsuit")) return "Dresses";
+    if (
+      name.includes("blouse") ||
+      name.includes("tee") ||
+      name.includes("sweater")
+    )
+      return "Tops";
+    if (name.includes("jeans") || name.includes("skirt")) return "Accessories";
+    return "Uncategorized";
+  };
 
   // Category options
   const categoryOptions = [
@@ -62,10 +91,10 @@ const HomeScreen = () => {
     { label: "Accessories", value: "Accessories" },
   ];
 
-  // Filter and sort products with error handling
+  // Filter and sort products
   const filteredAndSortedProducts = [...(products || [])]
     .filter((product) => {
-      const productCategory = product.category || "Uncategorized";
+      const productCategory = inferCategory(product.name);
       return categoryType === "all" || productCategory === categoryType;
     })
     .sort((a, b) => {
@@ -82,8 +111,9 @@ const HomeScreen = () => {
       Alert.alert("Error", "Please select size and color");
       return;
     }
-    navigation.navigate("Cart", {
-      product: {
+
+    try {
+      addToCart({
         id: selectedProduct.id,
         name: selectedProduct.name,
         price: selectedProduct.price,
@@ -91,9 +121,12 @@ const HomeScreen = () => {
         color: selectedColor,
         image: displayImage,
         quantity: 1,
-      },
-    });
-    setModalVisible(false);
+      });
+      setModalVisible(false);
+      navigation.navigate("Cart");
+    } catch (error) {
+      Alert.alert("Error", "Failed to add item to cart. Please try again.");
+    }
   };
 
   const openModal = (product) => {
@@ -101,9 +134,9 @@ const HomeScreen = () => {
       Alert.alert("Error", "Invalid product data");
       return;
     }
-    const defaultColor = product.colors[0];
+    const defaultColor = product.colors[0] || "";
     setSelectedProduct(product);
-    setSelectedSize(product.size[0]);
+    setSelectedSize(product.size[0] || "");
     setSelectedColor(defaultColor);
     setDisplayImage(
       product.imagesByColor?.[defaultColor] ||
@@ -127,21 +160,19 @@ const HomeScreen = () => {
     setImageViewerVisible(true);
   };
 
-  const renderStars = (rating) => {
-    return (
-      <View style={{ flexDirection: "row", marginBottom: 8 }}>
-        {[...Array(5)].map((_, index) => (
-          <Ionicons
-            key={index}
-            name={index < (rating || 0) ? "star" : "star-outline"}
-            size={18}
-            color="#f1c40f"
-            style={{ marginRight: 2 }}
-          />
-        ))}
-      </View>
-    );
-  };
+  const renderStars = (rating) => (
+    <View style={{ flexDirection: "row", marginBottom: 8 }}>
+      {[...Array(5)].map((_, index) => (
+        <Ionicons
+          key={index}
+          name={index < (rating || 0) ? "star" : "star-outline"}
+          size={18}
+          color="#f1c40f"
+          style={{ marginRight: 2 }}
+        />
+      ))}
+    </View>
+  );
 
   const renderProductItem = ({ item }) => (
     <TouchableOpacity
@@ -180,7 +211,11 @@ const HomeScreen = () => {
           <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
           <TouchableOpacity
             style={styles.shopNowButton}
-            onPress={() => navigation.navigate("ShopNow")}
+            onPress={() =>
+              navigation.navigate("ShopNow", {
+                products: ShopNowProducts || [],
+              })
+            }
           >
             <Text style={styles.shopNowText}>{item.buttonText}</Text>
           </TouchableOpacity>
@@ -206,8 +241,16 @@ const HomeScreen = () => {
           />
         </View>
         <Text style={styles.headerTitle}>Women's Fashion</Text>
-        <TouchableOpacity style={styles.cartIcon} onPress={navigateToCart}>
+        <TouchableOpacity
+          style={styles.cartIcon}
+          onPress={() => navigation.navigate("Cart")} // Direct navigation to Cart
+        >
           <Ionicons name="cart-outline" size={28} color="#fff" />
+          {cartItems.length > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>{cartItems.length}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </LinearGradient>
 
@@ -233,6 +276,20 @@ const HomeScreen = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>New Collection</Text>
             <View style={styles.filterSortContainer}>
+              {/* <TouchableOpacity
+                style={styles.categoryButton}
+                onPress={() => {
+                  console.log("Opening category modal");
+                  setCategoryModalVisible(true);
+                }}
+              >
+                <Ionicons name="funnel-outline" size={20} color="#8e44ad" />
+                <Text style={styles.categoryButtonText}>
+                  Filter:{" "}
+                  {categoryOptions.find((opt) => opt.value === categoryType)
+                    ?.label || "All"}
+                </Text>
+              </TouchableOpacity> */}
               <TouchableOpacity
                 style={styles.sortButton}
                 onPress={() => {
@@ -378,11 +435,7 @@ const HomeScreen = () => {
               <Text style={styles.modalPrice}>
                 Rs {(selectedProduct?.price || 0).toFixed(2)}
               </Text>
-
-              {/* Rating */}
               {selectedProduct?.rating && renderStars(selectedProduct.rating)}
-
-              {/* Description */}
               {selectedProduct?.description && (
                 <>
                   <Text style={styles.modalLabel}>Description:</Text>
@@ -391,7 +444,6 @@ const HomeScreen = () => {
                   </Text>
                 </>
               )}
-
               <Text style={styles.modalLabel}>Select Size:</Text>
               <View style={styles.optionsRow}>
                 {selectedProduct?.size?.map((size) => (
@@ -410,7 +462,6 @@ const HomeScreen = () => {
                   </TouchableOpacity>
                 ))}
               </View>
-
               <Text style={styles.modalLabel}>Select Color:</Text>
               <View style={styles.optionsRow}>
                 {selectedProduct?.colors?.map((color) => (
@@ -432,7 +483,6 @@ const HomeScreen = () => {
                   />
                 ))}
               </View>
-
               <TouchableOpacity
                 style={styles.addToCartModal}
                 onPress={navigateToCart}
@@ -440,13 +490,12 @@ const HomeScreen = () => {
                 <Ionicons name="cart" size={20} color="#fff" />
                 <Text style={styles.addToCartText}>Add to Cart</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
+                style={styles.closeButton}
                 onPress={() => {
                   console.log("Closing product modal");
                   setModalVisible(false);
                 }}
-                style={styles.closeButton}
               >
                 <Text style={{ color: "#fff", fontWeight: "bold" }}>Close</Text>
               </TouchableOpacity>
@@ -488,6 +537,12 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
   },
+  errorText: {
+    fontSize: 16,
+    color: "red",
+    textAlign: "center",
+    padding: 20,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -513,6 +568,22 @@ const styles = StyleSheet.create({
   },
   cartIcon: {
     padding: 8,
+  },
+  cartBadge: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    backgroundColor: "#ff0000",
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cartBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
   },
   bannerSection: {
     marginVertical: 12,
@@ -683,13 +754,13 @@ const styles = StyleSheet.create({
   sortCancelButton: {
     marginTop: 16,
     paddingVertical: 12,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#8e44ad",
     borderRadius: 8,
     alignItems: "center",
   },
   sortCancelText: {
     fontSize: 16,
-    color: "#374151",
+    color: "#fff",
     fontWeight: "600",
     fontFamily: "Helvetica",
   },

@@ -56,7 +56,11 @@ export default function App() {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="AddProduct" component={AddProductScreen} />
           <Stack.Screen name="Payment" component={PaymentScreen} />
-          <Stack.Screen name="ShopNow" component={ShopNow} />
+          <Stack.Screen
+            name="ShopNow"
+            component={ShopNow}
+            screenOptions={{ headerShown: true }}
+          />
           <Stack.Screen name="CheckOut" component={CheckoutScreen} />
           <Stack.Screen
             name="CardPayment"

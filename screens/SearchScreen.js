@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -22,7 +22,7 @@ const { width } = Dimensions.get("window");
 
 const SearchScreen = () => {
   const navigation = useNavigation();
-  const { products } = useProducts();
+  const { products, addToCart, cartItems } = useProducts() || {};
   const [searchText, setSearchText] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -35,6 +35,19 @@ const SearchScreen = () => {
   const [categoryType, setCategoryType] = useState("all");
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
 
+  // Fallback if context is undefined
+  if (!products || !addToCart || !cartItems) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.errorText}>
+          Error: Product context is not available. Ensure SearchScreen is
+          wrapped in ProductProvider.
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Debug products on mount
   useEffect(() => {
     console.log("Products:", JSON.stringify(products, null, 2));
     if (products) {
@@ -46,19 +59,33 @@ const SearchScreen = () => {
             }`
           );
         }
-        if (!p.category) {
-          console.warn(`Product ${i} (${p.name || "unknown"}) has no category`);
-        }
       });
     } else {
       console.warn("No products available from ProductContext");
     }
   }, [products]);
 
+  // Infer categories based on product names (aligned with HomeScreen)
+  const inferCategory = (productName) => {
+    if (!productName) return "Uncategorized";
+    const name = productName.toLowerCase();
+    if (name.includes("dress") || name.includes("jumpsuit")) return "Dresses";
+    if (
+      name.includes("blouse") ||
+      name.includes("tee") ||
+      name.includes("sweater")
+    )
+      return "Tops";
+    if (name.includes("jeans") || name.includes("skirt")) return "Accessories";
+    return "Uncategorized";
+  };
+
   const sortOptions = [
+    { label: "Default", value: "default" },
     { label: "Price: Low to High", value: "lowToHigh" },
     { label: "Price: High to Low", value: "highToLow" },
   ];
+
   const categoryOptions = [
     { label: "All", value: "all" },
     { label: "Dresses", value: "Dresses" },
@@ -75,18 +102,17 @@ const SearchScreen = () => {
       const matchesSearch = product.name
         .toLowerCase()
         .includes(searchText.toLowerCase());
-      const productCategory = (
-        product.category || "Uncategorized"
-      ).toLowerCase();
+      const productCategory = inferCategory(product.name);
       const matchesCategory =
-        categoryType === "all" ||
-        productCategory === categoryType.toLowerCase();
+        categoryType === "all" || productCategory === categoryType;
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
       const priceA = a.price || 0,
         priceB = b.price || 0;
-      return sortType === "lowToHigh" ? priceA - priceB : priceB - priceA;
+      if (sortType === "lowToHigh") return priceA - priceB;
+      if (sortType === "highToLow") return priceB - priceA;
+      return 0; // Default: no sorting
     });
 
   useEffect(() => {
@@ -95,7 +121,7 @@ const SearchScreen = () => {
       filteredProducts.map((p) => ({
         name: p.name,
         price: p.price,
-        category: p.category || "Uncategorized",
+        category: inferCategory(p.name),
       }))
     );
     console.log("Filters:", { searchText, categoryType, sortType });
@@ -117,21 +143,25 @@ const SearchScreen = () => {
       Alert.alert("Error", "Please select size and color");
       return;
     }
-    const cartProduct = {
-      id: selectedProduct.id,
-      name: selectedProduct.name,
-      price: selectedProduct.price || 0,
-      size: selectedSize,
-      color: selectedColor,
-      image:
-        selectedProduct.imagesByColor?.[selectedColor] ||
-        selectedProduct.thumbnail ||
-        selectedProduct.image ||
-        "https://via.placeholder.com/200",
-      quantity: 1,
-    };
-    navigation.navigate("Cart", { product: cartProduct });
-    setModalVisible(false);
+    try {
+      addToCart({
+        id: selectedProduct.id,
+        name: selectedProduct.name,
+        price: selectedProduct.price || 0,
+        size: selectedSize,
+        color: selectedColor,
+        image:
+          selectedProduct.imagesByColor?.[selectedColor] ||
+          selectedProduct.thumbnail ||
+          selectedProduct.image ||
+          "https://via.placeholder.com/200",
+        quantity: 1,
+      });
+      setModalVisible(false);
+      navigation.navigate("Cart");
+    } catch (error) {
+      Alert.alert("Error", "Failed to add item to cart. Please try again.");
+    }
   };
 
   const handleImagePress = (imageUri) => {
@@ -167,6 +197,11 @@ const SearchScreen = () => {
         <Text style={styles.headerTitle}>Search Products</Text>
         <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
           <Ionicons name="cart" size={26} color="#fff" />
+          {cartItems.length > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>{cartItems.length}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </LinearGradient>
 
@@ -187,6 +222,13 @@ const SearchScreen = () => {
             placeholderTextColor="#999"
           />
         </View>
+        {/* <TouchableOpacity
+          style={styles.categoryButton}
+          onPress={() => setCategoryModalVisible(true)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="funnel-outline" size={20} color="#8e44ad" />
+        </TouchableOpacity> */}
       </View>
 
       {/* Sort button below search */}
@@ -340,14 +382,12 @@ const SearchScreen = () => {
                   style={styles.modalImage}
                 />
               </TouchableOpacity>
-
               <Text style={styles.modalName}>
                 {selectedProduct?.name || "Unknown Product"}
               </Text>
               <Text style={styles.modalPrice}>
                 Rs {(selectedProduct?.price || 0).toFixed(2)}
               </Text>
-
               <Text style={styles.modalLabel}>Select Size:</Text>
               <View style={styles.optionsRow}>
                 {selectedProduct?.size?.map((size) => (
@@ -364,7 +404,6 @@ const SearchScreen = () => {
                   </TouchableOpacity>
                 ))}
               </View>
-
               <Text style={styles.modalLabel}>Select Color:</Text>
               <View style={styles.optionsRow}>
                 {selectedProduct?.colors?.map((color) => (
@@ -384,7 +423,6 @@ const SearchScreen = () => {
                   />
                 ))}
               </View>
-
               <Text style={styles.modalLabel}>Reviews:</Text>
               {selectedProduct?.reviews?.length ? (
                 selectedProduct.reviews.map((review, idx) => (
@@ -395,7 +433,6 @@ const SearchScreen = () => {
               ) : (
                 <Text style={styles.reviewText}>No reviews available</Text>
               )}
-
               <TouchableOpacity
                 style={styles.addToCartModal}
                 onPress={navigateToCart}
@@ -404,7 +441,6 @@ const SearchScreen = () => {
                 <Ionicons name="cart" size={20} color="#fff" />
                 <Text style={styles.addToCartText}>Add to Cart</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setModalVisible(false)}
@@ -442,6 +478,12 @@ export default SearchScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9f6ff" },
+  errorText: {
+    fontSize: 16,
+    color: "red",
+    textAlign: "center",
+    padding: 20,
+  },
   header: {
     paddingHorizontal: 18,
     paddingVertical: 18,
@@ -456,12 +498,27 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontFamily: "Helvetica",
   },
+  cartBadge: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    backgroundColor: "#ff0000",
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cartBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
   searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 16,
     marginVertical: 12,
-    justifyContent: "space-between",
   },
   searchInputContainer: {
     flex: 1,
@@ -502,7 +559,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    zIndex: 1,
   },
   sortButtonText: {
     fontSize: 14,
@@ -510,14 +566,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontFamily: "Helvetica",
   },
-  filterContainer: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    alignItems: "flex-start",
-  },
   categoryButton: {
-    flexDirection: "row",
-    alignItems: "center",
     backgroundColor: "#fff",
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -528,7 +577,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    zIndex: 1,
   },
   categoryButtonText: {
     fontSize: 14,
@@ -604,13 +652,13 @@ const styles = StyleSheet.create({
   cancelButton: {
     marginTop: 16,
     paddingVertical: 12,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#8e44ad",
     borderRadius: 8,
     alignItems: "center",
   },
   cancelText: {
     fontSize: 16,
-    color: "#374151",
+    color: "#fff",
     fontWeight: "600",
     fontFamily: "Helvetica",
   },

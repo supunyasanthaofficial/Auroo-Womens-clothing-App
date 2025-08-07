@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -6,47 +6,28 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
+  FlatList,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { LinearGradient } from "expo-linear-gradient";
-import { useProducts } from "../context/ProductContext";
-
-const { width } = Dimensions.get("window");
+import { useNavigation } from "@react-navigation/native";
+import { useProducts } from "../context/ProductContext"; // make sure this path is correct
 
 const CartScreen = () => {
+  const { cartItems, placeOrder } = useProducts();
   const navigation = useNavigation();
-  const route = useRoute();
-  const { product } = route.params || {};
-  const { placeOrder } = useProducts();
-
-  const [quantity, setQuantity] = useState(product?.quantity || 1);
-
-  const incrementQuantity = () => {
-    setQuantity((prev) => prev + 1);
-  };
-
-  const decrementQuantity = () => {
-    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
-  };
 
   const handlePlaceOrder = () => {
-    if (product) {
-      const productWithQuantity = {
-        ...product,
-        quantity,
-        totalPrice: (product.price * quantity).toFixed(2),
-      };
-      placeOrder(productWithQuantity);
+    const orderWithTotals = cartItems.map((item) => ({
+      ...item,
+      totalPrice: (item.price * item.quantity).toFixed(2),
+    }));
 
-      navigation.navigate("Login", {
-        cartItems: [productWithQuantity], //  Pass as array
-      });
-    }
+    placeOrder(orderWithTotals);
+    navigation.navigate("Login", {
+      cartItems: orderWithTotals,
+    });
   };
 
-  if (!product) {
+  if (!cartItems || cartItems.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.emptyText}>Your cart is empty.</Text>
@@ -56,64 +37,41 @@ const CartScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#d8bfd8", "#c6a1cf"]} style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.headerIcon}
-        >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Your Cart</Text>
-      </LinearGradient>
+      <FlatList
+        data={cartItems}
+        keyExtractor={(item) => item.id + item.size + item.color}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Image source={{ uri: item.image }} style={styles.image} />
+            <View style={styles.info}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.detail}>Size: {item.size}</Text>
 
-      <View style={styles.card}>
-        <Image source={{ uri: product.image }} style={styles.image} />
-        <View style={styles.info}>
-          <Text style={styles.name}>{product.name}</Text>
-          <Text style={styles.detail}>Size: {product.size}</Text>
-
-          <View style={styles.colorRow}>
-            <Text style={styles.detail}>Color:</Text>
-            <View
-              style={[
-                styles.colorCircle,
-                { backgroundColor: product.color || "#ccc" },
-              ]}
-            />
-          </View>
-
-          <View style={styles.quantityRow}>
-            <Text style={styles.detail}>Quantity:</Text>
-            <View style={styles.quantityControls}>
-              <TouchableOpacity
-                onPress={decrementQuantity}
-                style={styles.quantityButton}
-              >
-                <Ionicons
-                  name="remove-circle-outline"
-                  size={28}
-                  color="#8e44ad"
+              <View style={styles.colorRow}>
+                <Text style={styles.detail}>Color:</Text>
+                <View
+                  style={[
+                    styles.colorCircle,
+                    { backgroundColor: item.color || "#ccc" },
+                  ]}
                 />
-              </TouchableOpacity>
-              <Text style={styles.quantityText}>{quantity}</Text>
-              <TouchableOpacity
-                onPress={incrementQuantity}
-                style={styles.quantityButton}
-              >
-                <Ionicons name="add-circle-outline" size={28} color="#8e44ad" />
-              </TouchableOpacity>
+              </View>
+
+              <View style={styles.quantityRow}>
+                <Text style={styles.detail}>Quantity:</Text>
+                <Text style={styles.quantityText}>{item.quantity}</Text>
+              </View>
+
+              <Text style={styles.price}>
+                Rs {(item.price * item.quantity).toFixed(2)}
+              </Text>
             </View>
           </View>
+        )}
+      />
 
-          <Text style={styles.price}>
-            Rs {(product.price * quantity).toFixed(2)}
-          </Text>
-        </View>
-      </View>
-
-      <TouchableOpacity style={styles.orderButton} onPress={handlePlaceOrder}>
-        <Ionicons name="checkmark-circle" size={20} color="#fff" />
-        <Text style={styles.orderText}>Proceed to Login</Text>
+      <TouchableOpacity style={styles.buyButton} onPress={handlePlaceOrder}>
+        <Text style={styles.buyButtonText}>Buy Now</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -122,88 +80,75 @@ const CartScreen = () => {
 export default CartScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9f6ff" },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 16,
-    backgroundColor: "#c6a1cf",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
   },
-  headerIcon: { position: "absolute", left: 16, top: 50 },
-  headerTitle: { fontSize: 22, fontWeight: "700", color: "#fff" },
   emptyText: {
-    marginTop: 40,
-    fontSize: 16,
+    fontSize: 18,
     textAlign: "center",
-    color: "#777",
+    marginTop: 20,
   },
   card: {
     flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    margin: 16,
-    elevation: 3,
-    padding: 12,
-  },
-  image: {
-    width: width * 0.3,
-    height: width * 0.4,
+    backgroundColor: "#f2f2f2",
+    margin: 10,
+    padding: 10,
     borderRadius: 10,
   },
-  info: { flex: 1, marginLeft: 12, justifyContent: "space-between" },
-  name: { fontSize: 16, fontWeight: "700", color: "#333" },
-  detail: { fontSize: 14, color: "#555", marginTop: 4 },
+  image: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+  },
+  info: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  detail: {
+    fontSize: 14,
+    marginTop: 5,
+  },
   colorRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 4,
+    marginTop: 5,
   },
   colorCircle: {
     width: 16,
     height: 16,
     borderRadius: 8,
-    marginLeft: 8,
+    marginLeft: 5,
     borderWidth: 1,
-    borderColor: "#999",
+    borderColor: "#ccc",
   },
   quantityRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
-  },
-  quantityControls: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginLeft: 12,
-  },
-  quantityButton: {
-    paddingHorizontal: 6,
+    marginTop: 5,
   },
   quantityText: {
-    fontSize: 16,
-    marginHorizontal: 12,
-    fontWeight: "600",
-    color: "#333",
-    minWidth: 25,
-    textAlign: "center",
+    fontSize: 14,
+    marginLeft: 5,
   },
-  price: { fontSize: 16, fontWeight: "700", color: "#008080", marginTop: 6 },
-  orderButton: {
+  price: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 10,
+  },
+  buyButton: {
     backgroundColor: "#8e44ad",
-    marginHorizontal: 16,
-    marginTop: 20,
-    paddingVertical: 12,
+    padding: 15,
+    margin: 20,
     borderRadius: 10,
-    flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
   },
-  orderText: {
+  buyButtonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
+    fontSize: 18,
   },
 });

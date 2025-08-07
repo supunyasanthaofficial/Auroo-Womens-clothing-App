@@ -1,3 +1,195 @@
+// import React, { createContext, useContext, useState } from "react";
+
+// const ProductContext = createContext();
+
+// export const ProductProvider = ({ children }) => {
+//   const [products, setProducts] = useState([
+//     {
+//       id: "1",
+//       name: "Floral Maxi Dress",
+//       price: 4500.0,
+//       size: ["S", "M", "L"],
+//       colors: ["#FFC0CB", "#000000"],
+//       thumbnail:
+//         "https://cdn.pixabay.com/photo/2020/03/12/00/52/nonbinary-4923610_640.jpg",
+//       imagesByColor: {
+//         "#FFC0CB":
+//           "https://cdn.pixabay.com/photo/2020/03/12/00/52/nonbinary-4923610_1280.jpg",
+//         "#000000":
+//           "https://cdn.pixabay.com/photo/2024/07/22/06/38/woman-8911930_1280.jpg",
+//       },
+//       description: "Elegant floral dress perfect for summer outings.",
+//       rating: 4.5,
+//     },
+//     {
+//       id: "2",
+//       name: "Silk Blouse",
+//       price: 5900.99,
+//       size: ["XS", "S", "M"],
+//       colors: ["#F5F5DC", "#DDA0DD"],
+//       thumbnail:
+//         "https://cdn.pixabay.com/photo/2023/05/25/13/10/woman-8017358_640.jpg",
+//       imagesByColor: {
+//         "#F5F5DC":
+//           "https://cdn.pixabay.com/photo/2023/05/25/13/10/woman-8017358_1280.jpg",
+//         "#DDA0DD":
+//           "https://cdn.pixabay.com/photo/2021/03/26/11/16/woman-6127233_1280.jpg",
+//       },
+//       description: "Silky smooth blouse for casual and formal occasions.",
+//       rating: 4.8,
+//     },
+
+//   ]);
+
+//   const [ShopNowProducts, setShopNowProducts] = useState([
+//     {
+//       id: "s1",
+//       name: "Summer Sale Skirt",
+//       price: 2999.99,
+//       size: ["S", "M"],
+//       colors: ["#FF7F50", "#FFD700"],
+//       thumbnail:
+//         "https://cdn.pixabay.com/photo/2023/09/02/11/53/woman-8228748_1280.jpg",
+//       imagesByColor: {
+//         "#FF7F50":
+//           "https://cdn.pixabay.com/photo/2023/09/02/11/53/woman-8228748_1280.jpg",
+//         "#FFD700":
+//           "https://cdn.pixabay.com/photo/2019/10/12/16/03/skirt-4544372_1280.jpg",
+//       },
+//       description: "Limited time offer for stylish summer skirts.",
+//       rating: 4.6,
+//     },
+//   ]);
+
+//   const [cartItems, setCartItems] = useState([]);
+
+//   const addToCart = (product) => {
+//     setCartItems((prevItems) => {
+//       const exists = prevItems.find(
+//         (item) =>
+//           item.id === product.id &&
+//           item.size === product.size &&
+//           item.color === product.color
+//       );
+
+//       if (exists) {
+//         return prevItems.map((item) =>
+//           item.id === newItem.id &&
+//           item.size === newItem.size &&
+//           item.color === newItem.color
+//             ? { ...item, quantity: item.quantity + newItem.quantity }
+//             : item
+//         );
+//       }
+
+//       if (prevItems.length >= 10) {
+//         alert("You can only add up to 10 different items in your cart");
+//         return prevItems;
+//       }
+//       return [...prevItems, newItem];
+//     });
+//   };
+
+//   // add muiltiple items to cart
+//   const addMultipleToCart = (productsToAdd) => {
+//     setCartItems((prevItems) => {
+//       let updatedItems = [...prevItems];
+
+//       for (let product of productsToAdd) {
+//         const exists = updatedItems.find(
+//           (item) =>
+//             item.id === product.id &&
+//             item.size === product.size &&
+//             item.color === product.color
+//         );
+
+//         if (exists) {
+//           updatedItems = updatedItems.map((item) =>
+//             item.id === product.id &&
+//             item.size === product.size &&
+//             item.color === product.color
+//               ? { ...item, quantity: item.quantity + product.quantity }
+//               : item
+//           );
+//         } else {
+//           if (updatedItems.length >= 10) {
+//             alert("Cart limit excceeded.Only 10 unique products allowed.");
+//             break;
+//           }
+//           updatedItems.push(product);
+//         }
+//       }
+//       return updatedItems;
+//     });
+//   };
+
+//   const removeFromCart = (id, size, color) => {
+//     setCartItems((prevItems) =>
+//       prevItems.filter(
+//         (item) =>
+//           !(item.id === id && item.size === size && item.color === color)
+//       )
+//     );
+//   };
+
+//   const [orders, setOrders] = useState([]);
+
+//   const placeOrder = (product) => {
+//     setOrders((prev) => [...prev, product]);
+//   };
+
+//   const addProduct = (newProduct) => {
+//     setProducts((prev) => [...prev, newProduct]);
+//   };
+
+//   const deleteProduct = (productId) => {
+//     setProducts((prev) => prev.filter((item) => item.id !== productId));
+//   };
+
+//   //Show now Products
+//   const addShopNowProduct = (newProduct) => {
+//     setShopNowProducts((prev) => [...prev, newProduct]);
+//   };
+
+//   const deleteShopNowProduct = (productId) => {
+//     setShopNowProducts((prev) => prev.filter((item) => item.id !== productId));
+//   };
+
+//   //orders
+
+//   const PlaceOrder = (product) => {
+//     setOrders((prev) => [...prev, product]);
+//   };
+
+//   return (
+//     <ProductContext.Provider
+//       value={{
+//         products,
+//         addProduct,
+//         deleteProduct,
+//         placeOrder,
+//         orders,
+//         setOrders,
+//         ShopNowProducts,
+//         addShopNowProduct,
+//         deleteShopNowProduct,
+//         PlaceOrder,
+//         setShopNowProducts,
+//         cartItems,
+//         setCartItems,
+//         addToCart,
+//         removeFromCart,
+//         addMultipleToCart,
+//         removeFromCart,
+//       }}
+//     >
+//       {children}
+//     </ProductContext.Provider>
+//   );
+// };
+
+// export const useProducts = () => useContext(ProductContext);
+
 import React, { createContext, useContext, useState } from "react";
 
 const ProductContext = createContext();
@@ -136,6 +328,7 @@ export const ProductProvider = ({ children }) => {
       description: "Modern jumpsuit perfect for casual parties.",
       rating: 4.6,
     },
+    // ... add more products as needed
   ]);
 
   const [ShopNowProducts, setShopNowProducts] = useState([
@@ -159,7 +352,9 @@ export const ProductProvider = ({ children }) => {
   ]);
 
   const [cartItems, setCartItems] = useState([]);
+  const [orders, setOrders] = useState([]);
 
+  // ✅ Add single product to cart
   const addToCart = (product) => {
     setCartItems((prevItems) => {
       const exists = prevItems.find(
@@ -171,10 +366,10 @@ export const ProductProvider = ({ children }) => {
 
       if (exists) {
         return prevItems.map((item) =>
-          item.id === newItem.id &&
-          item.size === newItem.size &&
-          item.color === newItem.color
-            ? { ...item, quantity: item.quantity + newItem.quantity }
+          item.id === product.id &&
+          item.size === product.size &&
+          item.color === product.color
+            ? { ...item, quantity: item.quantity + product.quantity }
             : item
         );
       }
@@ -183,11 +378,12 @@ export const ProductProvider = ({ children }) => {
         alert("You can only add up to 10 different items in your cart");
         return prevItems;
       }
-      return [...prevItems, newItem];
+
+      return [...prevItems, product];
     });
   };
 
-  // add muiltiple items to cart
+  // ✅ Add multiple products (e.g., bulk add)
   const addMultipleToCart = (productsToAdd) => {
     setCartItems((prevItems) => {
       let updatedItems = [...prevItems];
@@ -210,16 +406,18 @@ export const ProductProvider = ({ children }) => {
           );
         } else {
           if (updatedItems.length >= 10) {
-            alert("Cart limit excceeded.Only 10 unique products allowed.");
+            alert("Cart limit exceeded. Only 10 unique products allowed.");
             break;
           }
           updatedItems.push(product);
         }
       }
+
       return updatedItems;
     });
   };
 
+  // ✅ Remove product from cart
   const removeFromCart = (id, size, color) => {
     setCartItems((prevItems) =>
       prevItems.filter(
@@ -229,12 +427,12 @@ export const ProductProvider = ({ children }) => {
     );
   };
 
-  const [orders, setOrders] = useState([]);
-
+  // ✅ Place order
   const placeOrder = (product) => {
     setOrders((prev) => [...prev, product]);
   };
 
+  // ✅ Manage shop products
   const addProduct = (newProduct) => {
     setProducts((prev) => [...prev, newProduct]);
   };
@@ -243,7 +441,7 @@ export const ProductProvider = ({ children }) => {
     setProducts((prev) => prev.filter((item) => item.id !== productId));
   };
 
-  //Show now Products
+  // ✅ Manage shop now products
   const addShopNowProduct = (newProduct) => {
     setShopNowProducts((prev) => [...prev, newProduct]);
   };
@@ -252,8 +450,7 @@ export const ProductProvider = ({ children }) => {
     setShopNowProducts((prev) => prev.filter((item) => item.id !== productId));
   };
 
-  //orders
-
+  // ✅ Duplicate of placeOrder (if needed)
   const PlaceOrder = (product) => {
     setOrders((prev) => [...prev, product]);
   };
@@ -261,23 +458,29 @@ export const ProductProvider = ({ children }) => {
   return (
     <ProductContext.Provider
       value={{
+        // Products
         products,
         addProduct,
         deleteProduct,
-        placeOrder,
-        orders,
-        setOrders,
+
+        // Shop now
         ShopNowProducts,
+        setShopNowProducts,
         addShopNowProduct,
         deleteShopNowProduct,
-        PlaceOrder,
-        setShopNowProducts,
+
+        // Cart
         cartItems,
         setCartItems,
         addToCart,
-        removeFromCart,
         addMultipleToCart,
         removeFromCart,
+
+        // Orders
+        orders,
+        setOrders,
+        placeOrder,
+        PlaceOrder,
       }}
     >
       {children}
