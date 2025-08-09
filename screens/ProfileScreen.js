@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 18,
     paddingHorizontal: 16,
-    alignItems: "center",
+    alignItems: "flex-start",
     backgroundColor: "transparent",
   },
   headerTitle: {

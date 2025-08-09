@@ -50,7 +50,7 @@ const LoginScreen = () => {
         text: "OK",
         onPress: () =>
           navigation.navigate("CheckOut", {
-            cartItems, // pass all cart items
+            cartItems,
             userEmail: email,
           }),
       },

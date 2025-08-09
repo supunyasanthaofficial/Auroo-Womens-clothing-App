@@ -56,7 +56,6 @@ const HomeScreen = () => {
   const { products, addToCart, cartItems, ShopNowProducts } =
     useProducts() || {};
 
-  // Fallback if context is undefined
   if (!products || !addToCart || !cartItems) {
     return (
       <SafeAreaView style={styles.container}>
@@ -68,7 +67,6 @@ const HomeScreen = () => {
     );
   }
 
-  // Infer categories based on product names (since no category field exists)
   const inferCategory = (productName) => {
     if (!productName) return "Uncategorized";
     const name = productName.toLowerCase();
@@ -83,7 +81,6 @@ const HomeScreen = () => {
     return "Uncategorized";
   };
 
-  // Category options
   const categoryOptions = [
     { label: "All", value: "all" },
     { label: "Dresses", value: "Dresses" },
@@ -91,7 +88,6 @@ const HomeScreen = () => {
     { label: "Accessories", value: "Accessories" },
   ];
 
-  // Filter and sort products
   const filteredAndSortedProducts = [...(products || [])]
     .filter((product) => {
       const productCategory = inferCategory(product.name);
@@ -103,7 +99,7 @@ const HomeScreen = () => {
       } else if (sortType === "priceHighToLow") {
         return (b.price || 0) - (a.price || 0);
       }
-      return 0; // Default: no sorting
+      return 0;
     });
 
   const navigateToCart = () => {
@@ -125,6 +121,7 @@ const HomeScreen = () => {
       setModalVisible(false);
       navigation.navigate("Cart");
     } catch (error) {
+      console.error("Add to cart error:", error);
       Alert.alert("Error", "Failed to add item to cart. Please try again.");
     }
   };
@@ -190,7 +187,7 @@ const HomeScreen = () => {
       <View style={styles.productInfo}>
         <Text style={styles.productName}>{item.name || "Unknown Product"}</Text>
         <Text style={styles.productPrice}>
-          Rs {(item.price || 0).toFixed(2)}
+          LKR {(item.price || 0).toFixed(2)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -234,18 +231,9 @@ const HomeScreen = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <LinearGradient colors={["#d8bfd8", "#c6a1cf"]} style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Image
-            source={require("../assets/Auro o fashion-01.png")}
-            style={styles.logo}
-          />
-        </View>
         <Text style={styles.headerTitle}>Women's Fashion</Text>
-        <TouchableOpacity
-          style={styles.cartIcon}
-          onPress={() => navigation.navigate("Cart")} // Direct navigation to Cart
-        >
-          <Ionicons name="cart-outline" size={28} color="#fff" />
+        <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
+          <Ionicons name="cart" size={26} color="#fff" />
           {cartItems.length > 0 && (
             <View style={styles.cartBadge}>
               <Text style={styles.cartBadgeText}>{cartItems.length}</Text>
@@ -276,20 +264,6 @@ const HomeScreen = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>New Collection</Text>
             <View style={styles.filterSortContainer}>
-              {/* <TouchableOpacity
-                style={styles.categoryButton}
-                onPress={() => {
-                  console.log("Opening category modal");
-                  setCategoryModalVisible(true);
-                }}
-              >
-                <Ionicons name="funnel-outline" size={20} color="#8e44ad" />
-                <Text style={styles.categoryButtonText}>
-                  Filter:{" "}
-                  {categoryOptions.find((opt) => opt.value === categoryType)
-                    ?.label || "All"}
-                </Text>
-              </TouchableOpacity> */}
               <TouchableOpacity
                 style={styles.sortButton}
                 onPress={() => {
@@ -324,53 +298,6 @@ const HomeScreen = () => {
           )}
         </View>
       </ScrollView>
-
-      {/* Category Modal */}
-      <Modal
-        visible={categoryModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setCategoryModalVisible(false)}
-      >
-        <View style={styles.sortModalContainer}>
-          <View style={styles.sortModalContent}>
-            <Text style={styles.sortModalTitle}>Filter by Category</Text>
-            {categoryOptions.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={[
-                  styles.sortOption,
-                  categoryType === option.value && styles.selectedSortOption,
-                ]}
-                onPress={() => {
-                  console.log(`Selected category: ${option.value}`);
-                  setCategoryType(option.value);
-                  setCategoryModalVisible(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.sortOptionText,
-                    categoryType === option.value &&
-                      styles.selectedSortOptionText,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              style={styles.sortCancelButton}
-              onPress={() => {
-                console.log("Category modal cancelled");
-                setCategoryModalVisible(false);
-              }}
-            >
-              <Text style={styles.sortCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       {/* Sort Modal */}
       <Modal
@@ -433,7 +360,7 @@ const HomeScreen = () => {
                 {selectedProduct?.name || "Unknown Product"}
               </Text>
               <Text style={styles.modalPrice}>
-                Rs {(selectedProduct?.price || 0).toFixed(2)}
+                LKR {(selectedProduct?.price || 0).toFixed(2)}
               </Text>
               {selectedProduct?.rating && renderStars(selectedProduct.rating)}
               {selectedProduct?.description && (
@@ -532,7 +459,7 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9f6ff",
+    backgroundColor: "#f3f4f6",
   },
   scrollContainer: {
     flex: 1,
@@ -542,32 +469,21 @@ const styles = StyleSheet.create({
     color: "red",
     textAlign: "center",
     padding: 20,
+    fontFamily: "Helvetica",
   },
   header: {
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    paddingTop: 60,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingTop: 60,
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  logo: {
-    width: 75,
-    height: 75,
-    resizeMode: "contain",
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: "700",
     color: "#fff",
     fontFamily: "Helvetica",
-  },
-  cartIcon: {
-    padding: 8,
   },
   cartBadge: {
     position: "absolute",
@@ -666,27 +582,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "600",
     color: "#333",
-    fontFamily: "Helvetica",
-  },
-  categoryButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    marginRight: 8,
-  },
-  categoryButtonText: {
-    fontSize: 14,
-    color: "#8e44ad",
-    marginLeft: 6,
     fontFamily: "Helvetica",
   },
   sortButton: {

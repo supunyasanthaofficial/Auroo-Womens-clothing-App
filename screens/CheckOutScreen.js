@@ -19,7 +19,6 @@ const CheckoutScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
-  //  Receive all cartItems and userEmail
   const { cartItems = [], userEmail } = route.params || {};
 
   const [form, setForm] = useState({
@@ -90,7 +89,6 @@ const CheckoutScreen = () => {
         style={styles.container}
       >
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {/* ✅ Show all cart items */}
           {cartItems.map((item, index) => (
             <View key={index} style={styles.productContainer}>
               <Text style={styles.productTitle}>{item.name}</Text>

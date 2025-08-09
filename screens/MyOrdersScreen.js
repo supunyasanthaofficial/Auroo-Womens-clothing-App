@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 18,
     paddingHorizontal: 16,
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "center",
   },
   headerTitle: {
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   deleteButton: {
-    backgroundColor: "#ef4444",
+    backgroundColor: "#b10808ff",
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 14,

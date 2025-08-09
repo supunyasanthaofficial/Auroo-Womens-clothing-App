@@ -498,6 +498,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontFamily: "Helvetica",
   },
+  cartIcon: { padding: 8 },
   cartBadge: {
     position: "absolute",
     right: 0,

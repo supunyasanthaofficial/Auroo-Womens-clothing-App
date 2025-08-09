@@ -77,7 +77,7 @@ const IntroScreen = () => {
       animateImage();
     }, 3000);
 
-    animateImage(); // Initial animation
+    animateImage();
     return () => clearInterval(interval);
   }, []);
 
