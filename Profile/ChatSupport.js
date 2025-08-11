@@ -19,7 +19,7 @@ const ChatSupport = ({ navigation }) => {
       label: "WhatsApp",
       description: "Chat with us on WhatsApp for quick support.",
       action: async () => {
-        const url = "whatsapp://send?phone=+94741344312";
+        const url = "whatsapp://send?phone=+94112345678";
         try {
           const supported = await Linking.canOpenURL(url);
           if (supported) {
@@ -40,7 +40,7 @@ const ChatSupport = ({ navigation }) => {
       description: "Message us on Instagram for assistance.",
       action: async () => {
         const url =
-          "https://www.instagram.com/_supun_yasantha_?utm_source=qr&igsh=MTVranQ5NGx4MXMxMg=="; // Replace with your Instagram handle
+          "https://www.instagram.com/ever_efficient_?igsh=MjMxb3d0M2liOGlu";
         try {
           await Linking.openURL(url);
         } catch (error) {
@@ -55,17 +55,20 @@ const ChatSupport = ({ navigation }) => {
       label: "Messenger",
       description: "Reach out via Facebook Messenger.",
       action: async () => {
-        const url = "fb-messenger://user-thread/your_facebook_page_id";
+        const messengerUrl = "https://m.me/everefficient.official";
+        const fallbackUrl = "https://www.facebook.com/everefficient.official";
         try {
-          const supported = await Linking.canOpenURL(url);
-          if (supported) {
-            await Linking.openURL(url);
-          } else {
-            await Linking.openURL("https://m.me/your_facebook_page_id");
-          }
+          await Linking.openURL(messengerUrl);
         } catch (error) {
-          Alert.alert("Error", "Failed to open Messenger. Please try again.");
-          console.error("Messenger Linking Error:", error);
+          try {
+            await Linking.openURL(fallbackUrl);
+          } catch (fallbackError) {
+            Alert.alert(
+              "Error",
+              "Failed to open Messenger or Facebook. Please try again."
+            );
+            console.error("Messenger/Facebook Linking Error:", fallbackError);
+          }
         }
       },
     },
