@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,24 +21,24 @@ const PaymentScreen = () => {
   const [selectedMethod, setSelectedMethod] = useState("card");
 
   const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.price * item.quantity,
+    (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
     0
   );
   const total = subtotal + DELIVERY_FEE;
 
   const handlePayment = () => {
-    if (selectedMethod === "card") {
-      navigation.navigate("CardPayment", {
+    const targetScreen =
+      selectedMethod === "card" ? "CardPayment" : "CODPayment";
+    try {
+      navigation.navigate(targetScreen, {
         cartItems,
         checkoutDetails,
         total,
       });
-    } else if (selectedMethod === "cod") {
-      navigation.navigate("CODPayment", {
-        cartItems,
-        checkoutDetails,
-        total,
-      });
+    } catch (error) {
+      alert(
+        `Error: Unable to navigate to ${targetScreen}. Please ensure the screen is registered in the navigation stack.`
+      );
     }
   };
 
@@ -65,36 +64,33 @@ const PaymentScreen = () => {
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {cartItems.map((product, index) => (
-          <View style={styles.preview} key={index}>
-            <Image
-              source={{ uri: product.image }}
-              style={styles.image}
-              resizeMode="cover"
-            />
-            <Text style={styles.name}>{product.name}</Text>
+          <View
+            style={styles.preview}
+            key={`${product.id || index}-${product.size || ""}-${
+              product.color || ""
+            }-${index}`}
+          >
+            <Text style={styles.name}>{product.name || "Unknown Product"}</Text>
             <View style={styles.detailContainer}>
               <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Price:</Text>
+                <Text style={styles.detailValue}>
+                  Rs{" "}
+                  {((product.price || 0) * (product.quantity || 1)).toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Size:</Text>
-                <Text style={styles.detailValue}>{product.size}</Text>
+                <Text style={styles.detailValue}>{product.size || "N/A"}</Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Color:</Text>
                 <View
                   style={[
                     styles.colorCircle,
-                    { backgroundColor: product.color },
+                    { backgroundColor: product.color || "#ccc" },
                   ]}
                 />
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Quantity:</Text>
-                <Text style={styles.detailValue}>{product.quantity}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Price:</Text>
-                <Text style={styles.detailValue}>
-                  Rs {(product.price * product.quantity).toFixed(2)}
-                </Text>
               </View>
             </View>
           </View>
@@ -171,46 +167,39 @@ const styles = StyleSheet.create({
   preview: {
     backgroundColor: "#fff",
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
+    padding: 12,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: "#d1d5db",
     width: "100%",
-    alignItems: "center",
-  },
-  image: {
-    width: 160,
-    height: 220,
-    borderRadius: 10,
-    marginBottom: 12,
   },
   name: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "600",
     color: "#1f2937",
-    marginBottom: 12,
+    marginBottom: 8,
     textAlign: "center",
   },
   detailContainer: { width: "100%", paddingHorizontal: 8 },
   detailRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   detailLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "500",
     color: "#4b5563",
-    width: 100,
+    width: 70,
   },
   detailValue: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#1f2937",
   },
   colorCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#999",
   },
