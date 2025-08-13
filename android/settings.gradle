@@ -15,6 +15,13 @@ pluginManagement {
     "../android/expo-gradle-plugin"
   ).absolutePath
   includeBuild(expoPluginsPath)
+
+  repositories {
+    gradlePluginPortal()
+    google()
+    mavenCentral()
+    maven { url 'https://www.jitpack.io' }
+  }
 }
 
 plugins {
@@ -29,10 +36,11 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
     ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
   }
 }
-expoAutolinking.useExpoModules()
 
 rootProject.name = 'Aurao'
 
+// ✅ Make sure this is called *after* rootProject.name
+expoAutolinking.useExpoModules()
 expoAutolinking.useExpoVersionCatalog()
 
 include ':app'
