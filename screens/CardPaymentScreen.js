@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -33,7 +34,11 @@ const cardIcons = {
 const CardPaymentScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { cartItems = [], checkoutDetails } = route.params || {};
+  const {
+    cartItems = [],
+    checkoutDetails = {},
+    total = 0,
+  } = route.params || {};
   const { placeOrder } = useProducts();
 
   const [cardDetails, setCardDetails] = useState({
@@ -41,10 +46,20 @@ const CardPaymentScreen = () => {
     expiry: "",
     cvv: "",
   });
-
   const [saveCard, setSaveCard] = useState(false);
   const [loading, setLoading] = useState(false);
   const [masked, setMasked] = useState(false);
+
+  console.log("Received route.params:", route.params);
+  console.log("Received cartItems:", cartItems);
+  console.log("Received checkoutDetails:", checkoutDetails);
+  console.log("checkoutDetails keys:", Object.keys(checkoutDetails));
+  console.log("checkoutDetails.name:", checkoutDetails.name);
+  console.log("checkoutDetails.fullName:", checkoutDetails.fullName);
+  console.log("checkoutDetails.customerName:", checkoutDetails.customerName);
+  console.log("checkoutDetails.address:", checkoutDetails.address);
+  console.log("checkoutDetails.phone:", checkoutDetails.phone);
+  console.log("Received total:", total);
 
   useEffect(() => {
     const loadSavedCard = async () => {
@@ -58,6 +73,7 @@ const CardPaymentScreen = () => {
         }
       } catch (e) {
         console.error("Error loading saved card:", e);
+        Alert.alert("Error", "Failed to load saved card details.");
       }
     };
     loadSavedCard();
@@ -97,6 +113,24 @@ const CardPaymentScreen = () => {
       return;
     }
 
+    const name =
+      checkoutDetails.name ||
+      checkoutDetails.fullName ||
+      checkoutDetails.customerName;
+    if (!name || !name.trim()) {
+      Alert.alert(
+        "Missing Information",
+        "Please provide a valid name in checkout details."
+      );
+      return;
+    }
+
+    console.log("Confirming payment with:", {
+      cartItems,
+      checkoutDetails,
+      total,
+    });
+
     setLoading(true);
 
     if (saveCard) {
@@ -107,16 +141,31 @@ const CardPaymentScreen = () => {
         );
       } catch (error) {
         console.error("SecureStore Error:", error);
+        Alert.alert("Error", "Failed to save card details.");
       }
     }
 
-    setTimeout(() => {
+    try {
       placeOrder(cartItems);
       setLoading(false);
       Alert.alert("Success", "Payment completed successfully", [
-        { text: "OK", onPress: () => navigation.navigate("MyOrders") },
+        {
+          text: "OK",
+          onPress: () => {
+            try {
+              navigation.navigate("MyOrders");
+            } catch (navError) {
+              console.error("Navigation Error:", navError);
+              Alert.alert("Error", "Failed to navigate to My Orders.");
+            }
+          },
+        },
       ]);
-    }, 1500);
+    } catch (error) {
+      console.error("Place Order Error:", error);
+      setLoading(false);
+      Alert.alert("Error", "Failed to process payment. Please try again.");
+    }
   };
 
   return (
@@ -131,9 +180,34 @@ const CardPaymentScreen = () => {
         <Text style={styles.headerTitle}>Card Payment</Text>
       </LinearGradient>
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         <Animated.View entering={FadeIn} style={styles.card}>
-          <Text style={styles.sectionTitle}>Card information</Text>
+          <Text style={styles.sectionTitle}>Checkout Details</Text>
+          <View style={styles.checkoutDetailsContainer}>
+            <View style={styles.checkoutDetailRow}>
+              <Text style={styles.checkoutDetailLabel}>Name:</Text>
+              <Text style={styles.checkoutDetailValue}>
+                {checkoutDetails.name ||
+                  checkoutDetails.fullName ||
+                  checkoutDetails.customerName ||
+                  "N/A"}
+              </Text>
+            </View>
+            <View style={styles.checkoutDetailRow}>
+              <Text style={styles.checkoutDetailLabel}>Address:</Text>
+              <Text style={styles.checkoutDetailValue}>
+                {checkoutDetails.address || "N/A"}
+              </Text>
+            </View>
+            <View style={styles.checkoutDetailRow}>
+              <Text style={styles.checkoutDetailLabel}>Phone:</Text>
+              <Text style={styles.checkoutDetailValue}>
+                {checkoutDetails.phone || "N/A"}
+              </Text>
+            </View>
+          </View>
+
+          <Text style={styles.sectionTitle}>Card Information</Text>
 
           {cardType !== "default" && (
             <Image
@@ -182,6 +256,15 @@ const CardPaymentScreen = () => {
             />
           </View>
 
+          <View style={styles.checkoutDetailsContainer}>
+            <View style={styles.checkoutDetailRow}>
+              <Text style={styles.checkoutDetailLabel}>Total:</Text>
+              <Text style={styles.checkoutDetailValue}>
+                Rs {total.toFixed(2)}
+              </Text>
+            </View>
+          </View>
+
           <View style={styles.checkboxContainer}>
             <Checkbox
               value={saveCard}
@@ -209,7 +292,7 @@ const CardPaymentScreen = () => {
             )}
           </TouchableOpacity>
         </Animated.View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -234,7 +317,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     paddingVertical: 24,
     paddingHorizontal: 20,
     alignItems: "center",
@@ -256,6 +339,27 @@ const styles = StyleSheet.create({
     color: "#1f2937",
     marginBottom: 20,
     textAlign: "center",
+  },
+  checkoutDetailsContainer: {
+    width: "100%",
+    paddingHorizontal: 8,
+    marginBottom: 20,
+  },
+  checkoutDetailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  checkoutDetailLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#4b5563",
+    width: 80,
+  },
+  checkoutDetailValue: {
+    fontSize: 14,
+    color: "#1f2937",
+    flex: 1,
   },
   input: {
     backgroundColor: "#f3f4f6",

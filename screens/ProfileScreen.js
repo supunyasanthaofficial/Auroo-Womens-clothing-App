@@ -159,7 +159,6 @@ const ProfileScreen = ({ navigation }) => {
   );
 };
 
-// OptionRow Component
 const OptionRow = ({ icon, label, onPress }) => (
   <TouchableOpacity
     style={styles.optionRow}

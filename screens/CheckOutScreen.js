@@ -65,9 +65,9 @@ const CheckoutScreen = () => {
     };
 
     navigation.navigate("Payment", {
-      cartItems, //  pass array
-      userEmail, //  forward email
-      checkoutDetails, //  pass shipping info
+      cartItems,
+      userEmail,
+      checkoutDetails,
     });
   };
 

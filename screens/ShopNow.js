@@ -30,7 +30,6 @@ const ShopNowScreen = () => {
   const [imageViewerVisible, setImageViewerVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
 
-  // Debug context and products on mount
   useEffect(() => {
     console.log("ShopNowScreen mounted");
     console.log("ProductContext:", { ShopNowProducts, addToCart, cartItems });
@@ -54,7 +53,6 @@ const ShopNowScreen = () => {
     }
   }, [ShopNowProducts, addToCart, cartItems]);
 
-  // Fallback if context is undefined
   if (!ShopNowProducts || !addToCart || !cartItems) {
     return (
       <SafeAreaView style={styles.container}>
@@ -174,7 +172,6 @@ const ShopNowScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <LinearGradient colors={["#d8bfd8", "#c6a1cf"]} style={styles.header}>
         <Text style={styles.headerTitle}>Shop Now Deals</Text>
         <TouchableOpacity
@@ -193,7 +190,6 @@ const ShopNowScreen = () => {
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Product List */}
       {ShopNowProducts.length === 0 ? (
         <Text style={styles.noProductsText}>No products available</Text>
       ) : (
@@ -209,7 +205,6 @@ const ShopNowScreen = () => {
         />
       )}
 
-      {/* Product Detail Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -288,7 +283,6 @@ const ShopNowScreen = () => {
         </View>
       </Modal>
 
-      {/* Image Viewer Modal */}
       <Modal visible={imageViewerVisible} transparent>
         <View style={styles.imageViewerContainer}>
           <TouchableOpacity

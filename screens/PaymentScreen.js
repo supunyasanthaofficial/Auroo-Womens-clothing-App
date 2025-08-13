@@ -20,6 +20,9 @@ const PaymentScreen = () => {
   const checkoutDetails = route.params?.checkoutDetails || {};
   const [selectedMethod, setSelectedMethod] = useState("card");
 
+  console.log("Received cartItems:", cartItems);
+  console.log("Received checkoutDetails:", checkoutDetails);
+
   const subtotal = cartItems.reduce(
     (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
     0
@@ -29,16 +32,30 @@ const PaymentScreen = () => {
   const handlePayment = () => {
     const targetScreen =
       selectedMethod === "card" ? "CardPayment" : "CODPayment";
+
+    if (!checkoutDetails || Object.keys(checkoutDetails).length === 0) {
+      console.warn(
+        "Warning: checkoutDetails is empty or missing. Proceeding with navigation."
+      );
+    }
+
+    console.log("Navigating to:", targetScreen, {
+      cartItems,
+      checkoutDetails,
+      total,
+    });
+
     try {
       navigation.navigate(targetScreen, {
-        cartItems,
-        checkoutDetails,
-        total,
+        cartItems: cartItems || [],
+        checkoutDetails: checkoutDetails || {},
+        total: total || 0,
       });
     } catch (error) {
       alert(
         `Error: Unable to navigate to ${targetScreen}. Please ensure the screen is registered in the navigation stack.`
       );
+      console.error("Navigation Error:", error);
     }
   };
 
@@ -63,41 +80,46 @@ const PaymentScreen = () => {
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {cartItems.map((product, index) => (
-          <View
-            style={styles.preview}
-            key={`${product.id || index}-${product.size || ""}-${
-              product.color || ""
-            }-${index}`}
-          >
-            <Text style={styles.name}>{product.name || "Unknown Product"}</Text>
-            <View style={styles.detailContainer}>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Price:</Text>
-                <Text style={styles.detailValue}>
-                  Rs{" "}
-                  {((product.price || 0) * (product.quantity || 1)).toFixed(2)}
-                </Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Size:</Text>
-                <Text style={styles.detailValue}>{product.size || "N/A"}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Color:</Text>
-                <View
-                  style={[
-                    styles.colorCircle,
-                    { backgroundColor: product.color || "#ccc" },
-                  ]}
-                />
-              </View>
-            </View>
-          </View>
-        ))}
-
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Order Summary</Text>
+          {cartItems.map((product, index) => (
+            <View
+              key={`${product.id || `item-${index}`}-${
+                product.size || "no-size"
+              }-${product.color || "no-color"}-${index}`}
+              style={styles.summaryItem}
+            >
+              <Text style={styles.summaryName}>
+                {product.name || "Unknown Product"}
+              </Text>
+              <View style={styles.summaryDetailContainer}>
+                <View style={styles.summaryDetailRow}>
+                  <Text style={styles.summaryDetailLabel}>Price:</Text>
+                  <Text style={styles.summaryDetailValue}>
+                    Rs{" "}
+                    {((product.price || 0) * (product.quantity || 1)).toFixed(
+                      2
+                    )}
+                  </Text>
+                </View>
+                <View style={styles.summaryDetailRow}>
+                  <Text style={styles.summaryDetailLabel}>Size:</Text>
+                  <Text style={styles.summaryDetailValue}>
+                    {product.size || "N/A"}
+                  </Text>
+                </View>
+                <View style={styles.summaryDetailRow}>
+                  <Text style={styles.summaryDetailLabel}>Color:</Text>
+                  <View
+                    style={[
+                      styles.summaryColorCircle,
+                      { backgroundColor: product.color || "#ccc" },
+                    ]}
+                  />
+                </View>
+              </View>
+            </View>
+          ))}
           <View style={styles.row}>
             <Text style={styles.label}>Subtotal</Text>
             <Text style={styles.value}>Rs {subtotal.toFixed(2)}</Text>
@@ -164,45 +186,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     minHeight: "100%",
   },
-  preview: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    width: "100%",
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  detailContainer: { width: "100%", paddingHorizontal: 8 },
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  detailLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#4b5563",
-    width: 70,
-  },
-  detailValue: {
-    fontSize: 14,
-    color: "#1f2937",
-  },
-  colorCircle: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#999",
-  },
   card: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -220,6 +203,41 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1f2937",
     marginBottom: 16,
+  },
+  summaryItem: {
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+    paddingBottom: 8,
+  },
+  summaryName: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#1f2937",
+    marginBottom: 6,
+  },
+  summaryDetailContainer: { width: "100%", paddingHorizontal: 8 },
+  summaryDetailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  summaryDetailLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#4b5563",
+    width: 60,
+  },
+  summaryDetailValue: {
+    fontSize: 13,
+    color: "#1f2937",
+  },
+  summaryColorCircle: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: "#999",
   },
   row: {
     flexDirection: "row",

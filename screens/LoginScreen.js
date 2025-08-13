@@ -18,14 +18,12 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
-  // Get cartItems passed from previous screen, or empty array
   const { cartItems = [] } = route.params || {};
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
 
-  // Optional validation function
   const validateForm = () => {
     const newErrors = {};
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {

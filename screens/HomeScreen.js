@@ -229,7 +229,6 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <LinearGradient colors={["#d8bfd8", "#c6a1cf"]} style={styles.header}>
         <Text style={styles.headerTitle}>Women's Fashion</Text>
         <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
@@ -242,9 +241,7 @@ const HomeScreen = () => {
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* ScrollView */}
       <ScrollView style={styles.scrollContainer}>
-        {/* Banners */}
         <View style={styles.bannerSection}>
           <FlatList
             data={banners}
@@ -259,7 +256,6 @@ const HomeScreen = () => {
           />
         </View>
 
-        {/* Products */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>New Collection</Text>
@@ -299,7 +295,6 @@ const HomeScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Sort Modal */}
       <Modal
         visible={sortModalVisible}
         transparent
@@ -345,7 +340,6 @@ const HomeScreen = () => {
         </View>
       </Modal>
 
-      {/* Product Detail Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -431,7 +425,6 @@ const HomeScreen = () => {
         </View>
       </Modal>
 
-      {/* Image Viewer */}
       <Modal visible={imageViewerVisible} transparent>
         <View style={styles.imageViewerContainer}>
           <TouchableOpacity

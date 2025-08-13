@@ -35,7 +35,6 @@ const SearchScreen = () => {
   const [categoryType, setCategoryType] = useState("all");
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
 
-  // Fallback if context is undefined
   if (!products || !addToCart || !cartItems) {
     return (
       <SafeAreaView style={styles.container}>
@@ -47,7 +46,6 @@ const SearchScreen = () => {
     );
   }
 
-  // Debug products on mount
   useEffect(() => {
     console.log("Products:", JSON.stringify(products, null, 2));
     if (products) {
@@ -65,7 +63,6 @@ const SearchScreen = () => {
     }
   }, [products]);
 
-  // Infer categories based on product names (aligned with HomeScreen)
   const inferCategory = (productName) => {
     if (!productName) return "Uncategorized";
     const name = productName.toLowerCase();
@@ -112,7 +109,7 @@ const SearchScreen = () => {
         priceB = b.price || 0;
       if (sortType === "lowToHigh") return priceA - priceB;
       if (sortType === "highToLow") return priceB - priceA;
-      return 0; // Default: no sorting
+      return 0;
     });
 
   useEffect(() => {
@@ -205,7 +202,6 @@ const SearchScreen = () => {
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Search bar */}
       <View style={styles.searchBarContainer}>
         <View style={styles.searchInputContainer}>
           <Ionicons
@@ -222,16 +218,8 @@ const SearchScreen = () => {
             placeholderTextColor="#999"
           />
         </View>
-        {/* <TouchableOpacity
-          style={styles.categoryButton}
-          onPress={() => setCategoryModalVisible(true)}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="funnel-outline" size={20} color="#8e44ad" />
-        </TouchableOpacity> */}
       </View>
 
-      {/* Sort button below search */}
       <View style={styles.sortContainer}>
         <TouchableOpacity
           style={styles.sortButton}
@@ -245,7 +233,6 @@ const SearchScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Product listing */}
       {!products || products.length === 0 ? (
         <Text style={styles.noProductsText}>No products available</Text>
       ) : filteredProducts.length === 0 ? (
@@ -267,7 +254,6 @@ const SearchScreen = () => {
         />
       )}
 
-      {/* Sort Modal */}
       <Modal
         visible={sortModalVisible}
         transparent
@@ -311,7 +297,6 @@ const SearchScreen = () => {
         </View>
       </Modal>
 
-      {/* Category Modal */}
       <Modal
         visible={categoryModalVisible}
         transparent
@@ -356,7 +341,6 @@ const SearchScreen = () => {
         </View>
       </Modal>
 
-      {/* Product Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>

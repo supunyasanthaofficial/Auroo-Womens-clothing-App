@@ -123,7 +123,7 @@ const CODPaymentScreen = () => {
 
         {checkoutDetails && (
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Shipping Details</Text>
+            <Text style={styles.sectionTitle}>Delivery Details</Text>
             <Text style={styles.codDetail}>
               <Text style={{ fontWeight: "600" }}>Name:</Text>{" "}
               {checkoutDetails.fullName}
